@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+<textarea id="editor" spellcheck="false">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+</body>
+</html>
+</textarea>
+<div id="output"></div>
+<script>
+var Old_content = undefined;
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function extend(o, props) {
+  var i;
+  var keys = Object.keys(props);
+  for (i = 0; i < keys.length; i += 1) {
+    o[keys[i]] = props[keys[i]];
+  }
+  return o;
+}
+
+function update(html) {
+  var iframe = document.createElement("iframe");
+  $("output").innerHTML = "";
+  $("output").appendChild(iframe);
+  iframe.style.border = "0";
+  resize(iframe, 0, 0, 1, 1);
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.close();
+}
+  
+function resize(e, x, y, w, h) {
+  var p = e.parentNode;
+  e.style.left = p.clientWidth * x + "px";
+  e.style.top = p.clientHeight * y + "px";
+  e.style.width = p.clientWidth * w + "px";
+  e.style.height = p.clientHeight * h + "px";
+}
+
+function main() {
+  extend(document.body.style, {
+    width: window.innerWidth + "px",
+    height: window.innerHeight + "px",
+    margin: "0"
+  });
+  extend($("editor").style, {
+    position: "absolute",
+    fontSize: "1.5em",
+    background: "#f0f0f0",
+    border: "1px solid black"
+  });
+  extend($("output").style, {
+    position: "absolute",
+    border: "1px solid black"
+  });
+  resize($("editor"), 0.01, 0.01, 0.38, 0.98);
+  resize($("output"), 0.4, 0.01, 0.59, 0.98);
+  $("editor").addEventListener("keyup", function() {
+    if ($("editor").value !== Old_content) {
+      old_content = $("editor").value;
+      update($("editor").value);
+    }
+  });
+  update($("editor").value);
+}
+  
+window.addEventListener("load", function () {
+  setTimeout(main, 0);
+});
+</script> 
+</body>
+</html>
