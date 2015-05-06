@@ -86,14 +86,12 @@ function load() {
 function wait_for_window() {
   if (window.innerWidth === 0 || window.innerHeight === 0) {
     setTimeout(wait_for_window, 0);
+    return;
   }
   load();
 }
 
-window.addEventListener("load", function () {
-  setTimeout(wait_for_window, 0);
-});
-
+window.addEventListener("load", wait_for_window);
 window.addEventListener("resize", resize);
 </script> 
 </body>
