@@ -16,7 +16,7 @@
 </textarea>
 <div id="output"></div>
 <script>
-var Old_content = undefined;
+var Global = {};
 
 function $(id) {
   return document.getElementById(id);
@@ -31,26 +31,26 @@ function extend(o, props) {
   return o;
 }
 
-function update(html) {
-  var iframe = document.createElement("iframe");
+function update_output(html) {
+  Global.iframe = document.createElement("iframe");
   $("output").innerHTML = "";
-  $("output").appendChild(iframe);
-  iframe.style.border = "0";
-  resize(iframe, 0, 0, 1, 1);
-  iframe.contentWindow.document.open();
-  iframe.contentWindow.document.write(html);
-  iframe.contentWindow.document.close();
+  $("output").appendChild(Global.iframe);
+  Global.iframe.style.border = "0";
+  resize_element(Global.iframe, 0, 0, 1, 1);
+  Global.iframe.contentWindow.document.open();
+  Global.iframe.contentWindow.document.write(html);
+  Global.iframe.contentWindow.document.close();
 }
   
-function resize(e, x, y, w, h) {
+function resize_element(e, x, y, w, h) {
   var p = e.parentNode;
-  e.style.left = p.clientWidth * x + "px";
-  e.style.top = p.clientHeight * y + "px";
-  e.style.width = p.clientWidth * w + "px";
-  e.style.height = p.clientHeight * h + "px";
+  e.style.left = x * p.clientWidth + "px";
+  e.style.top = y * p.clientHeight + "px";
+  e.style.width = w * p.clientWidth + "px";
+  e.style.height = h * p.clientHeight + "px";
 }
 
-function main() {
+function resize() {
   extend(document.body.style, {
     width: window.innerWidth + "px",
     height: window.innerHeight + "px",
@@ -60,7 +60,7 @@ function main() {
     position: "absolute",
     padding: "0",
     resize: "none",
-    fontSize: window.innerWidth * 0.008 + "px",
+    fontSize: 0.008 * window.innerWidth + "px",
     background: "#f0f0f0",
     border: "1px solid black"
   });
@@ -68,20 +68,33 @@ function main() {
     position: "absolute",
     border: "1px solid black"
   });
-  resize($("editor"), 0.01, 0.01, 0.38, 0.98);
-  resize($("output"), 0.4, 0.01, 0.59, 0.98);
+  resize_element($("editor"), 0.01, 0.01, 0.38, 0.98);
+  resize_element($("output"), 0.4, 0.01, 0.59, 0.98);
+  update_output($("editor").value);
+}
+
+function load() {
   $("editor").addEventListener("keyup", function() {
-    if ($("editor").value !== Old_content) {
-      Old_content = $("editor").value;
-      update($("editor").value);
+    if ($("editor").value !== Global.content) {
+      Global.content = $("editor").value;
+      update_output($("editor").value);
     }
   });
-  update($("editor").value);
+  resize();
 }
   
+function wait_for_window() {
+  if (window.innerWidth === 0 || window.innerHeight === 0) {
+    setTimeout(wait_for_window, 0);
+  }
+  load();
+}
+
 window.addEventListener("load", function () {
-  setTimeout(main, 0);
+  setTimeout(wait_for_window, 0);
 });
+
+window.addEventListener("resize", resize);
 </script> 
 </body>
 </html>
