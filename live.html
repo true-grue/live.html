@@ -15,6 +15,7 @@
 </html>
 </textarea>
 <div id="output"></div>
+<pre id="debug"></pre>
 <script>
 var Global = {};
 
@@ -31,17 +32,29 @@ function extend(o, props) {
   return o;
 }
 
+function replace_log(console) {
+  var old_log = console.log;
+  console.log = function () {
+    var r = old_log.apply(console, arguments);
+    var s = Array.prototype.slice.call(arguments).join(" ") + "\n";
+    $("debug").textContent += s;
+    return r;
+  };
+}
+
 function update_output(html) {
+  $("debug").textContent = "";
   Global.iframe = document.createElement("iframe");
   $("output").innerHTML = "";
   $("output").appendChild(Global.iframe);
   Global.iframe.style.border = "0";
   resize_element(Global.iframe, 0, 0, 1, 1);
+  replace_log(Global.iframe.contentWindow.console);
   Global.iframe.contentWindow.document.open();
   Global.iframe.contentWindow.document.write(html);
   Global.iframe.contentWindow.document.close();
 }
-  
+
 function resize_element(e, x, y, w, h) {
   var p = e.parentNode;
   e.style.left = x * p.clientWidth + "px";
@@ -68,8 +81,15 @@ function resize() {
     position: "absolute",
     border: "1px solid black"
   });
-  resize_element($("editor"), 0.01, 0.01, 0.38, 0.98);
+  extend($("debug").style, {
+    position: "absolute",
+    border: "1px solid black",
+    overflowY: "auto",
+    margin: "0"
+  });
+  resize_element($("editor"), 0.01, 0.01, 0.38, 0.88);
   resize_element($("output"), 0.4, 0.01, 0.59, 0.98);
+  resize_element($("debug"), 0.01, 0.9, 0.38, 0.09);
   update_output($("editor").value);
 }
 
@@ -82,7 +102,7 @@ function load() {
   });
   resize();
 }
-  
+
 function wait_for_window() {
   if (window.innerWidth === 0 || window.innerHeight === 0) {
     setTimeout(wait_for_window, 0);
@@ -93,6 +113,6 @@ function wait_for_window() {
 
 window.addEventListener("load", wait_for_window);
 window.addEventListener("resize", resize);
-</script> 
+</script>
 </body>
 </html>
