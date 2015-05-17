@@ -17,7 +17,7 @@
 <div id="output"></div>
 <pre id="debug"></pre>
 <script>
-var Global = {};
+var Content = undefined;
 
 function $(id) {
   return document.getElementById(id);
@@ -32,30 +32,37 @@ function extend(o, props) {
   return o;
 }
 
-function replace_log(console) {
-  var old_log = console.log;
-  console.log = function () {
-    var r = old_log.apply(console, arguments);
+function replace_handlers(window) {
+  var old_log = window.console.log;
+  window.console.log = function () {
+    var r = old_log.apply(window.console, arguments);
     var s = Array.prototype.slice.call(arguments).join(" ") + "\n";
     $("debug").textContent += s;
     return r;
   };
+  window.onerror = function (message, url, line) {
+    var s = message + " " + url + " " + line + "\n";
+    $("debug").innerHTML += "<b style='color:red'>" + s + "</b>";
+    return false;
+  };
 }
 
-function update_output(html) {
+function update(html) {
+  var window;
+  var iframe = document.createElement("iframe");
   $("debug").textContent = "";
-  Global.iframe = document.createElement("iframe");
   $("output").innerHTML = "";
-  $("output").appendChild(Global.iframe);
-  Global.iframe.style.border = "0";
-  resize_element(Global.iframe, 0, 0, 1, 1);
-  replace_log(Global.iframe.contentWindow.console);
-  Global.iframe.contentWindow.document.open();
-  Global.iframe.contentWindow.document.write(html);
-  Global.iframe.contentWindow.document.close();
+  $("output").appendChild(iframe);
+  window = iframe.contentWindow;
+  iframe.style.border = "0";
+  resize_ui(iframe, 0, 0, 1, 1);
+  window.document.open();
+  replace_handlers(window);
+  window.document.write(html);
+  window.document.close();
 }
 
-function resize_element(e, x, y, w, h) {
+function resize_ui(e, x, y, w, h) {
   var p = e.parentNode;
   e.style.left = x * p.clientWidth + "px";
   e.style.top = y * p.clientHeight + "px";
@@ -87,17 +94,17 @@ function resize() {
     overflowY: "auto",
     margin: "0"
   });
-  resize_element($("editor"), 0.01, 0.01, 0.38, 0.88);
-  resize_element($("output"), 0.4, 0.01, 0.59, 0.98);
-  resize_element($("debug"), 0.01, 0.9, 0.38, 0.09);
-  update_output($("editor").value);
+  resize_ui($("editor"), 0.01, 0.01, 0.38, 0.88);
+  resize_ui($("output"), 0.4, 0.01, 0.59, 0.98);
+  resize_ui($("debug"), 0.01, 0.9, 0.38, 0.09);
+  update($("editor").value);
 }
 
 function load() {
   $("editor").addEventListener("keyup", function() {
-    if ($("editor").value !== Global.content) {
-      Global.content = $("editor").value;
-      update_output($("editor").value);
+    if ($("editor").value !== Content) {
+      Content = $("editor").value;
+      update($("editor").value);
     }
   });
   resize();
